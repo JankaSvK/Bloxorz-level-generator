@@ -71,7 +71,4 @@ movingWithTheBlock(X, Y, S, IMatrix, [M|Movements]) :-
 	setVisited(X, Y, S, IMatrix),
 	newStateAndCoords(X, Y, S, M, NX, NY, NS),
 	movingWithTheBlock(NX, NY, NS, IMatrix, Movements)
-
-	%%movingWithTheBlock(X1,Y,1
-
 .	
