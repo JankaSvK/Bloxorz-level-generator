@@ -4,56 +4,52 @@ import Data.List
 data Direction = North | South | East | West
 			   deriving (Show, Eq)
 
-data Point = Point Int Int 
+data Point = Point {corX, corY :: Int} 
 		   deriving (Show, Eq)
 
-type Width = Int
-type Height = Int
-type Depth = Int
-data BlockDimensions = BlockDimensions Width Height Depth
-		   deriving (Show, Eq)
+--type Width = Int
+--type Height = Int
+--type Depth = Int
+data BlockDimensions = BlockDimensions {width, height, depth :: Int}
+					deriving (Show, Eq)
 
 data Side = Top | Front | Right 
 		   deriving (Show, Eq)
 
 -- Orientation (Side on plane, Side on the North)
-type BottomSide = Side
-type NorthSide = Side
-data Orientation = BottomSide NorthSide 
-				 deriving (Show, Eq)
+--type BottomSide = Side
+--type NorthSide = Side
+--data Orientation = BottomSide NorthSide 
+--				 deriving (Show, Eq)
 
-type Block = (BlockDimensions, Orientation, Point)
+data Block = Block {blockDimensions :: BlockDimensions, point :: Point}
+		   deriving (Show, Eq)
 
 type UpperLeftCorner = Point
 type BottomRightCorner = Point
-data Rectangle = UpperLeftCorner BottomRightCorner 
-			   deriving (Show, Eq)
+type Rectangle = (UpperLeftCorner, BottomRightCorner)
 
 --- funkcia co vrati ake vsetky policka zabera
 -- lavy horny roh tej steny
 
 -- funkcia co vezme suradnicu a vrati lavu dolnu po otoceni
 getBlockAfterRotation :: Block -> Direction -> Block
-getBlockAfterRotation (dimensions, orient, point) dir
-	= (newDimensions, newOrientation, newPoint)
-	where 
-	   newDimensions = rotateBlockDimension dimensions dir
-	   newOrientation = rotateBlockOrientation orient dir
-	   
+getBlockAfterRotation (dim, Point p) dir
+	= (newDim, newP)
+	where
+	 newDim = rotateBlockDimensions dim dir	   
+	 -- musim pricitat k suradnici, no neviem ako sa to robi
+	 newP
+	 	| dir == North = Point {corX = (corX p), corY = (corY p + height dim)}
 
 ---- tu hore som a chcem rotovat orientaciu a to ako sa zmeni bod- --- chce to
  -- dalsie dve fukncie
 
--- bottomside northside
-rotateBlockOrientation (bottom north) dir =
-	| dir == North = Orientation north bottom
- 	| dir == East  = Orientation 
----- zrusit orientation a pozerat as na rozmery ako usporiadana trojica
 
 rotateBlockDimensions :: BlockDimensions -> Direction -> BlockDimensions
-rotateBlockDimensions (BlockDimensions a b c) dir
-	| dir == North || dir == South = (BlockDimensions a c b)
-	| dir == East  || dir == West  = (BlockDimensions b a c)
+rotateBlockDimensions (BlockDimensions (a b c)) dir
+	| dir == North || dir == South = (BlockDimensions (a c b))
+	| dir == East  || dir == West  = (BlockDimensions (b a c))
 
 
 wrapper a = do
