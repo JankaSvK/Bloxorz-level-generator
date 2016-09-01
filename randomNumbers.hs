@@ -4,6 +4,8 @@ import Data.List
 data Direction = North | South | East | West
 			   deriving (Show, Eq)
 
+data Point2 = (Int, Int)
+
 data Point = Point {corX, corY :: Int} 
 		   deriving (Show, Eq)
 
@@ -33,14 +35,14 @@ type Rectangle = (UpperLeftCorner, BottomRightCorner)
 -- lavy horny roh tej steny
 
 -- funkcia co vezme suradnicu a vrati lavu dolnu po otoceni
-getBlockAfterRotation :: Block -> Direction -> Block
-getBlockAfterRotation (dim, Point p) dir
-	= (newDim, newP)
-	where
-	 newDim = rotateBlockDimensions dim dir	   
-	 -- musim pricitat k suradnici, no neviem ako sa to robi
-	 newP
-	 	| dir == North = Point {corX = (corX p), corY = (corY p + height dim)}
+--getBlockAfterRotation :: Block -> Direction -> Block
+--getBlockAfterRotation (dim, Point p) dir
+--	= (newDim, newP)
+--	where
+--	 newDim = rotateBlockDimensions dim dir	   
+--	 -- musim pricitat k suradnici, no neviem ako sa to robi
+--	 newP
+--	 	| dir == North = Point {corX = (corX p), corY = (corY p + height dim)}
 
 ---- tu hore som a chcem rotovat orientaciu a to ako sa zmeni bod- --- chce to
  -- dalsie dve fukncie
