@@ -25,8 +25,8 @@ data Block = Block {dim :: BlockDimensions, point :: Point}
 
 -- funkcia co vezme suradnicu a vrati lavu dolnu po otoceni
 getBlockAfterRotation :: Block -> Direction -> Block
-getBlockAfterRotation (Block {dim = dim, point = pt}) dir =
-	Block {dim = newDim, point = newPt}
+getBlockAfterRotation (Block (dim = dim, point = pt)) dir =
+	Block (newDim, newPt)
 	where 
 		newDim = rotateBlockDimensions dim dir
 		newPt = pointAfterRotation pt dim dir
