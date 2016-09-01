@@ -10,14 +10,17 @@ data Side = Top | Front | Right
 --		   deriving (Show, Eq)
 
 -- (x, y)
-type Point = Pt (Int, Int)
+data Point = Pt (Int, Int)
+	deriving (Show, Eq)
 -- (UpperLeftCorner, BottomRightCorner)
-type Rectangle = Rec (Point, Point)
+data Rectangle = Rec (Point, Point)
+	deriving (Show, Eq)
 -- (width, height, depth)
-type Dim = Dim (Int, Int, Int)
+data Dim = Dim (Int, Int, Int)
+	deriving (Show, Eq)
 
 -- Block {Dim, LavyHornyRoh}
-data Block = Block {dim :: BlockDimensions, point :: Point}
+data Block = Block {dim :: Dim, point :: Point}
 		   deriving (Show, Eq)
 
 --- funkcia co vrati ake vsetky policka zabera
@@ -43,7 +46,7 @@ getBlockAfterRotation (Block {dim = dim, point = pt}) dir =
  -- dalsie dve fukncie
 
 pointAfterRotation :: Point -> Dim -> Direction -> Point
-pointAfterRotation (Point (x, y)) (Dim (a, b, c)) dir
+pointAfterRotation (Pt (x, y)) (Dim (a, b, c)) dir
 	| dir == North = Pt (x, y - b)
 	| dir == South = Pt (x, y + b)
 	| dir == East  = Pt (x - a, y)
