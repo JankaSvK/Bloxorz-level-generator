@@ -6,9 +6,6 @@ data Direction = North | South | East | West
 data Side = Top | Front | Right 
 		   deriving (Show, Eq)
 
---data Point = Point {corX, corY :: Int} 
---		   deriving (Show, Eq)
-
 -- (x, y)
 data Point = Pt (Int, Int)
 	deriving (Show, Eq)
@@ -33,17 +30,6 @@ getBlockAfterRotation (Block {dim = dim, point = pt}) dir =
 	where 
 		newDim = rotateBlockDimensions dim dir
 		newPt = pointAfterRotation pt dim dir
-
-
---	= (newDim, newP)
---	where
---	 newDim = rotateBlockDimensions dim dir	   
---	 -- musim pricitat k suradnici, no neviem ako sa to robi
---	 newP
---	 	| dir == North = Point {corX = (corX p), corY = (corY p + height dim)}
-
----- tu hore som a chcem rotovat orientaciu a to ako sa zmeni bod- --- chce to
- -- dalsie dve fukncie
 
 pointAfterRotation :: Point -> Dim -> Direction -> Point
 pointAfterRotation (Pt (x, y)) (Dim (a, b, c)) dir
