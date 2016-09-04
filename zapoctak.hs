@@ -20,10 +20,12 @@ data Dim = Dim (Int, Int, Int)
 data Block = Block {dim :: Dim, point :: Point}
 		   deriving (Show, Eq)
 
---- funkcia co vrati ake vsetky policka zabera
--- lavy horny roh tej steny
+-- Vrati obdlznik pod spodnou podstavou
+allBottomFields :: Block -> Rectangle
+allBottomFields (Block {dim = Dim (a,b,c), point = Pt (x, y)}) =
+	Rec (Pt (x,y), Pt (x + a, y + c))
 
--- funkcia co vezme suradnicu a vrati lavu dolnu po otoceni
+--Vrati Blok aj so suradnicami po otoceni danym smerom
 getBlockAfterRotation :: Block -> Direction -> Block
 getBlockAfterRotation (Block {dim = dim, point = pt}) dir =
 	Block {dim = newDim, point = newPt}
@@ -31,19 +33,19 @@ getBlockAfterRotation (Block {dim = dim, point = pt}) dir =
 		newDim = rotateBlockDimensions dim dir
 		newPt = pointAfterRotation pt dim dir
 
+--Vrati novu suradnicu po otoceni danym smerom
 pointAfterRotation :: Point -> Dim -> Direction -> Point
 pointAfterRotation (Pt (x, y)) (Dim (a, b, c)) dir
 	| dir == North = Pt (x, y - b)
-	| dir == South = Pt (x, y + b)
-	| dir == East  = Pt (x - a, y)
-	| dir == West  = Pt (x + a, y)
+	| dir == South = Pt (x, y + c)
+	| dir == East  = Pt (x + a, y)
+	| dir == West  = Pt (x - b, y)
 
-
+--Vrati nove rozmery Bloku po otoceni danym smerom
 rotateBlockDimensions :: Dim -> Direction -> Dim
 rotateBlockDimensions (Dim (a, b, c)) dir
 	| dir == North || dir == South = (Dim (a, c, b))
 	| dir == East  || dir == West  = (Dim (b, a, c))
-
 
 wrapper a = do
 	return a
@@ -57,11 +59,7 @@ main = do
 	g <- getStdGen
 	putStrLn $ show $ take 3 (listOfPermutations g)
 
-
 -- riesime kreslenie mapy na zaklade vygenerovanej postupnosnti
-
-
-listOfPermutations :: RandomGen t => t -> [[Direction]]
 listOfPermutations g = 
 	(shuffled:listOfPermutations newG)
  	where (shuffled, newG) = shuffle [North, South, East, West] g
