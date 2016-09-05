@@ -58,15 +58,6 @@ type CoorRow = (Int, [CoorColumns])
 type CoorColumns = (Int, MapData)
 type MapData = Bool
 
-{-
-POZOR chyba s prehodenymi suradnicami
-
-*Main> applyFunctionOnMap (setIfThereIsBlock  (Block {dim = Dim (1,2,2), point
-= Pt (1,1)})) (grid 3 3 False)
-[[False,False,False],[False,True,True],[False,False,False]]
-
--}
-
 functionOnCoorMap :: (Point -> MapData -> MapData) -> CoorMap -> [[MapData]]
 functionOnCoorMap f coorMap = map (functionOnRow f) coorMap
 
@@ -75,7 +66,7 @@ functionOnRow (f) (numOfRow, columns) =
 	map (wrapperForFunction f numOfRow) columns
 
 wrapperForFunction :: (Point -> a -> a) -> Int -> (Int, a) -> a 
-wrapperForFunction f x (y, val) = f (Pt (x,y)) val
+wrapperForFunction f y (x, val) = f (Pt (x,y)) val
 
 giveSum' :: Point -> Int -> Int
 giveSum' (Pt (x, y)) val = x + y + val
