@@ -25,8 +25,6 @@ data Block = Block {dim :: Dim, point :: Point}
 
 grid x y = replicate x . replicate y
 
---TODO
---addBlockToAMap oldMap block =
 
 {-
 Metrika obtiaznosti mapy
@@ -45,7 +43,35 @@ BFS mi najde najkratsiu cestu do ciela a zaroven vsade kam sa dostanem
 
 -- map (map (+1)) (grid 5 5 1)
 
+mapWidth = 10
+mapHeight = 10
+--mapSize = Rec (mapWidth, mapHeight)
 
+addLineNumber mapa = zip [0..] mapa
+addColumnNumber (y, val) = (y, addLineNumber val)
+addCoordsToAMap mapa = map addColumnNumber (addLineNumber mapa)
+
+type CoorMap = [CoorRow]
+type CoorRow = (Int, [CoorColumns])
+type CoorColumns = (Int, MapData)
+type MapData = Int
+{-
+functionOnCoorMap :: (Point -> a -> a) -> CoorMap -> [[a]]
+functionOnCoorMap f coorMap = map (functionOnRow f) coorMap
+--functionOnMap f coorMap = map functionOnRow f coorMap
+-}
+functionOnRow :: (Point -> a -> a) -> CoorRow -> [MapData]
+functionOnRow (f) (numOfRow, columns) = 
+	map (wrapperForFunction f numOfRow) columns
+
+wrapperForFunction :: (Point -> a -> a) -> Int -> (Int, a) -> a 
+wrapperForFunction f x (y, val) = f (Pt (x,y)) val
+
+giveSum' :: Point -> Int -> Int
+giveSum' (Pt (x, y)) val = x + y + val
+
+isFieldUnderBlockInts :: Block -> Int -> Int -> Bool
+isFieldUnderBlockInts block x y = isFieldUnderBlock block (Pt (x, y))
 
 isFieldUnderBlock :: Block -> Point -> Bool
 isFieldUnderBlock (block) (pt) =
