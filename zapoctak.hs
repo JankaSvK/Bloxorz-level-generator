@@ -2,23 +2,67 @@ import System.Random
 import Data.List
 
 data Direction = North | South | East | West
-			   deriving (Show, Eq)
+	deriving (Show, Eq)
+
 data Side = Top | Front | Right 
-		   deriving (Show, Eq)
+	deriving (Show, Eq)
 
 -- (x, y)
 data Point = Pt (Int, Int)
 	deriving (Show, Eq)
+
 -- (UpperLeftCorner, BottomRightCorner)
 data Rectangle = Rec (Point, Point)
 	deriving (Show, Eq)
+
 -- (width, height, depth)
 data Dim = Dim (Int, Int, Int)
 	deriving (Show, Eq)
 
 -- Block {Dim, LavyHornyRoh}
 data Block = Block {dim :: Dim, point :: Point}
-		   deriving (Show, Eq)
+	deriving (Show, Eq)
+
+grid x y = replicate x . replicate y
+
+--TODO
+--addBlockToAMap oldMap block =
+
+{-
+Metrika obtiaznosti mapy
+- miera nedeterminizmu v kazdom kroku
+--- kolko ciest z kazdeho policka kam sa dostanem?
+BFS mi najde najkratsiu cestu do ciela a zaroven vsade kam sa dostanem
+- pocet ciest do finale
+
+1. spravit BFS
+2. na danom bode povedat kolko moznosti je -- co je korektne otocenie
+
+-}
+
+
+
+
+-- map (map (+1)) (grid 5 5 1)
+
+
+
+isFieldUnderBlock :: Block -> Point -> Bool
+isFieldUnderBlock (block) (pt) =
+	if isPointInRectangle rec pt then True
+	else False
+	where
+		rec = allBottomFields block
+
+isPointInRectangle :: Rectangle -> Point -> Bool
+isPointInRectangle (Rec (Pt (x1, y1), Pt (x2, y2))) (Pt (x, y)) =
+	if isInRange x x1 x2 && isInRange y y1 y2 then True
+ 	else False
+
+isInRange :: Int -> Int -> Int -> Bool
+isInRange val start end =
+	if val >= start && val <= end then  True
+ 	else False
 
 -- Vrati obdlznik pod spodnou podstavou
 allBottomFields :: Block -> Rectangle
