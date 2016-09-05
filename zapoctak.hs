@@ -23,6 +23,8 @@ data Dim = Dim (Int, Int, Int)
 data Block = Block {dim :: Dim, point :: Point}
 	deriving (Show, Eq)
 
+type Map = [[MapData]]
+
 grid x y = replicate x . replicate y
 
 
@@ -39,13 +41,13 @@ BFS mi najde najkratsiu cestu do ciela a zaroven vsade kam sa dostanem
 -}
 
 
-
-
--- map (map (+1)) (grid 5 5 1)
-
 mapWidth = 10
 mapHeight = 10
 --mapSize = Rec (mapWidth, mapHeight)
+
+applyFunctionOnMap :: (Point -> MapData -> MapData) -> Map -> Map
+applyFunctionOnMap f mapa =
+	functionOnCoorMap (f) (addCoordsToAMap mapa)
 
 addLineNumber mapa = zip [0..] mapa
 addColumnNumber (y, val) = (y, addLineNumber val)
@@ -54,13 +56,21 @@ addCoordsToAMap mapa = map addColumnNumber (addLineNumber mapa)
 type CoorMap = [CoorRow]
 type CoorRow = (Int, [CoorColumns])
 type CoorColumns = (Int, MapData)
-type MapData = Int
+type MapData = Bool
+
 {-
-functionOnCoorMap :: (Point -> a -> a) -> CoorMap -> [[a]]
-functionOnCoorMap f coorMap = map (functionOnRow f) coorMap
---functionOnMap f coorMap = map functionOnRow f coorMap
+POZOR chyba s prehodenymi suradnicami
+
+*Main> applyFunctionOnMap (setIfThereIsBlock  (Block {dim = Dim (1,2,2), point
+= Pt (1,1)})) (grid 3 3 False)
+[[False,False,False],[False,True,True],[False,False,False]]
+
 -}
-functionOnRow :: (Point -> a -> a) -> CoorRow -> [MapData]
+
+functionOnCoorMap :: (Point -> MapData -> MapData) -> CoorMap -> [[MapData]]
+functionOnCoorMap f coorMap = map (functionOnRow f) coorMap
+
+functionOnRow :: (Point -> MapData -> MapData) -> CoorRow -> [MapData]
 functionOnRow (f) (numOfRow, columns) = 
 	map (wrapperForFunction f numOfRow) columns
 
@@ -70,8 +80,10 @@ wrapperForFunction f x (y, val) = f (Pt (x,y)) val
 giveSum' :: Point -> Int -> Int
 giveSum' (Pt (x, y)) val = x + y + val
 
-isFieldUnderBlockInts :: Block -> Int -> Int -> Bool
-isFieldUnderBlockInts block x y = isFieldUnderBlock block (Pt (x, y))
+setIfThereIsBlock :: Block -> Point -> Bool -> Bool
+setIfThereIsBlock block pt orig =
+	if isFieldUnderBlock block pt then True
+	else orig
 
 isFieldUnderBlock :: Block -> Point -> Bool
 isFieldUnderBlock (block) (pt) =
@@ -80,11 +92,13 @@ isFieldUnderBlock (block) (pt) =
 	where
 		rec = allBottomFields block
 
+-- Odpovie ci dany bod sa nachadza v uzavretom obdlzniku
 isPointInRectangle :: Rectangle -> Point -> Bool
 isPointInRectangle (Rec (Pt (x1, y1), Pt (x2, y2))) (Pt (x, y)) =
 	if isInRange x x1 x2 && isInRange y y1 y2 then True
  	else False
 
+-- Odpovie ci dane cislo sa nachadza v uzavretom intervale
 isInRange :: Int -> Int -> Int -> Bool
 isInRange val start end =
 	if val >= start && val <= end then  True
@@ -93,7 +107,7 @@ isInRange val start end =
 -- Vrati obdlznik pod spodnou podstavou
 allBottomFields :: Block -> Rectangle
 allBottomFields (Block {dim = Dim (a,b,c), point = Pt (x, y)}) =
-	Rec (Pt (x,y), Pt (x + a, y + c))
+	Rec (Pt (x,y), Pt (x + a - 1, y + c - 1))
 
 --Vrati Blok aj so suradnicami po otoceni danym smerom
 getBlockAfterRotation :: Block -> Direction -> Block
