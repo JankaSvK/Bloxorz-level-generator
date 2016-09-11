@@ -25,25 +25,134 @@ data Block = Block {dim :: Dim, point :: Point}
 
 type Map = [[MapData]]
 
+type MapWithBlock = (Map, Block) 
+
+
+--nacitavanie zo vstupu
+--prva pozicia je false
+
+test = do
+	g <- getStdGen
+	putStrLn $ show $ createNewMap (Pt (5,5)) (15,15) 200 g
+
+createNewMap :: RandomGen t => Point -> (Int, Int) -> Int -> t -> [(Map, Block,Int)]
+createNewMap pt (wid, hei) val g =
+	take 1 $ filter (sufficientMetric val) mapsWithInfos
+	where 
+	 block = Block {dim = Dim (1,2,1), point = pt}
+	 (maps, newGen) = mapGenerator [(grid wid hei False, block)] 30 g
+	 mapsWithInfos = map (addInfoToMap block) maps
+
+sufficientMetric :: Int -> (Map, Block, Int) -> Bool
+sufficientMetric goal (mapa, block, m)=
+	if m > goal then True
+	else False
+
+addInfoToMap :: Block -> MapWithBlock-> (Map, Block, Int)
+addInfoToMap block (mapa, _) = (mapa, endBlock, metric)
+	where
+	 (endBlock, metric) = getMetric mapa [block] [] 0
+
+-- ak je vacsia diera koniec tak moze spadnut ne
+
 grid x y = replicate x . replicate y
 
+getMetric :: Map -> [Block] -> [Block] -> Int -> (Block, Int)
+getMetric _ [] (lastVisited:rest) val = (lastVisited, val)
+getMetric mapa (current:queue) visited val =
+	if elem current visited 
+		then getMetric mapa queue visited val
+		else
+ 		 getMetric mapa (queue ++ newQueue) (current:visited) newVal
+	where
+	 newQueue = 
+	 	filter (areFieldsUnderBlockTrue mapa) $ map (getBlockAfterRotation current) [North, West, South, East]
+	 newVal = val + (length newQueue - 1)^2
 
-{-
-Metrika obtiaznosti mapy
-- miera nedeterminizmu v kazdom kroku
---- kolko ciest z kazdeho policka kam sa dostanem?
-BFS mi najde najkratsiu cestu do ciela a zaroven vsade kam sa dostanem
-- pocet ciest do finale
-
-1. spravit BFS
-2. na danom bode povedat kolko moznosti je -- co je korektne otocenie
-
--}
 
 
-mapWidth = 10
-mapHeight = 10
---mapSize = Rec (mapWidth, mapHeight)
+
+areFieldsUnderBlockTrue :: Map -> Block -> Bool
+areFieldsUnderBlockTrue mapa block = 
+	and [(isBlockInMap block mapa),(all (and) (mapForMove mapa block))]
+
+--zislo by sa prepisat do jednej lebo podobna je dole
+setIfThereIsNotBlock :: Block -> Point -> Bool -> Bool
+setIfThereIsNotBlock block pt orig =
+	if isFieldUnderBlock block pt then orig
+	else True
+
+mapForMove :: Map -> Block -> Map 
+mapForMove mapa block = applyFunctionOnMap (setIfThereIsNotBlock block) mapa  
+
+
+
+---
+
+mapGenerator :: RandomGen t => [MapWithBlock] -> Int -> t -> ([MapWithBlock], t)
+mapGenerator listOfMaps 0 g = (listOfMaps, g)
+mapGenerator [] _ g = ([], g)
+mapGenerator (mapa:listOfMaps) depth g = 
+	(proccessedHead ++ proccessedTail, newGen)
+	where
+	 (proccessedTail, newGen) = mapGenerator listOfMaps depth tmpGen
+	 (proccessedHead, tmpGen) = proccessMap mapa depth g
+
+proccessMap :: RandomGen t => MapWithBlock -> Int -> t -> ([MapWithBlock], t)
+proccessMap mapa depth g =
+	let (generatedMaps, newG) = mapsAfterMove mapa g
+ 	in
+		mapGenerator generatedMaps (depth-1) newG
+
+--generatorThroughMaps :: RandomGen t => [MapWithBlock] -> Int -> t ->	([MapWithBlock], t)
+--generatorThroughMaps [] _ g = ([], g)
+--generatorThroughMaps (map:mapsRest) depth g = 
+
+
+
+mapsAfterMove :: RandomGen t => MapWithBlock -> t -> ([MapWithBlock], t)
+mapsAfterMove mapa g = 
+	((allMapsOfMoves mapa dirs), newG)
+	 where (dirs, newG) = shuffle [North, West, South, East] g
+
+allMapsOfMoves :: MapWithBlock -> [Direction] -> [MapWithBlock]
+allMapsOfMoves mapWithBlock dirs = 
+	excludeNothing $ map (checkedMapWithBlockAfterMove mapWithBlock) dirs 
+
+excludeNothing :: [Maybe a] -> [a]
+excludeNothing [Nothing] = []
+excludeNothing [Just x] = [x]
+excludeNothing (x:xs) = (excludeNothing [x]) ++ (excludeNothing xs)
+
+checkedMapWithBlockAfterMove :: MapWithBlock -> Direction -> Maybe MapWithBlock
+checkedMapWithBlockAfterMove mapBlock dir =
+	if isBlockInMap newBlock newMap then Just newMapWithBlock
+	else Nothing
+ 	where
+	  newMapWithBlock = mapWithBlockAfterMove mapBlock dir
+	  (newMap, newBlock) = newMapWithBlock
+
+
+mapWithBlockAfterMove :: MapWithBlock -> Direction -> MapWithBlock
+mapWithBlockAfterMove (map, block) dir = (newMap, newBlock)
+	where
+	 newMap = updateMap map newBlock
+	 newBlock = getBlockAfterRotation block dir
+
+isBlockInMap :: Block -> Map -> Bool
+isBlockInMap Block {dim = dim, point = Pt (x, y)} mapa =
+	if x >= 0 && y >= 0  && x + a  < s && y + c < v then True
+	else False 
+ 	where
+	  (s,v) = sizeOfMap mapa
+	  Dim (a,b,c) = dim
+
+sizeOfMap :: Map -> (Int, Int)
+sizeOfMap mapa@(head:rest) = (length head, length mapa)
+-------
+
+updateMap :: Map -> Block -> Map 
+updateMap mapa block = applyFunctionOnMap (setIfThereIsBlock block) mapa  
 
 applyFunctionOnMap :: (Point -> MapData -> MapData) -> Map -> Map
 applyFunctionOnMap f mapa =
@@ -68,8 +177,8 @@ functionOnRow (f) (numOfRow, columns) =
 wrapperForFunction :: (Point -> a -> a) -> Int -> (Int, a) -> a 
 wrapperForFunction f y (x, val) = f (Pt (x,y)) val
 
-giveSum' :: Point -> Int -> Int
-giveSum' (Pt (x, y)) val = x + y + val
+--giveSum' :: Point -> Int -> Int
+--giveSum' (Pt (x, y)) val = x + y + val
 
 setIfThereIsBlock :: Block -> Point -> Bool -> Bool
 setIfThereIsBlock block pt orig =
