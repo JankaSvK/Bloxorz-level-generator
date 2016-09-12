@@ -27,6 +27,7 @@ type Map = [[MapData]]
 
 type MapWithBlock = (Map, Block) 
 
+-- Pomocné typy pre pridávanie súradníc k mape
 type CoorMap = [CoorRow]
 type CoorRow = (Int, [CoorColumns])
 type CoorColumns = (Int, MapData)
@@ -97,7 +98,6 @@ createNewMap (pt, (wid, hei), dim, val, depth) g =
 	 result = (take 1 $ filter (sufficientMetric val) mapsWithInfo) !! 0
 	 (resMap, resEndBlock, resVal) = result
 
-
 -- Na danej súradnici nastaví políčko na True
 setTrueOnCoord :: Point -> Map -> Map
 setTrueOnCoord (Pt (x, y)) mapa = newMapa
@@ -132,19 +132,17 @@ getMetric mapa (current:queue) visited val =
 	 	filter (areFieldsUnderBlockTrue mapa) $ map (getBlockAfterRotation current) [North, West, South, East]
 	 newVal = val + (length newQueue - 1)^2
 
-
-
 -- Skontroluje, či pod blokom sú existujúce políčka
 areFieldsUnderBlockTrue :: Map -> Block -> Bool
 areFieldsUnderBlockTrue mapa block = 
 	and [(isBlockInMap block mapa),(all (and) (mapForMove mapa block))]
 
 
--- 
+-- Pripraví mapu pre kontrolovanie možného ťahu
 mapForMove :: Map -> Block -> Map 
 mapForMove mapa block = applyFunctionOnMap (setIfThereIsNotBlock block) mapa  
 
---
+-- Mapový generátor
 mapGenerator :: RandomGen t => [MapWithBlock] -> Int -> t -> ([MapWithBlock], t)
 mapGenerator listOfMaps 0 g = (listOfMaps, g)
 mapGenerator [] _ g = ([], g)
@@ -154,7 +152,7 @@ mapGenerator (mapa:listOfMaps) depth g =
 	 (proccessedTail, newGen) = mapGenerator listOfMaps depth tmpGen
 	 (proccessedHead, tmpGen) = proccessMap mapa depth g
 
--- 
+-- Pomocná funkcia mapového generátoru 
 proccessMap :: RandomGen t => MapWithBlock -> Int -> t -> ([MapWithBlock], t)
 proccessMap mapa depth g =
 	let (generatedMaps, newG) = mapsAfterMove mapa g
@@ -164,7 +162,7 @@ proccessMap mapa depth g =
 -- Vráti korektné mapy po otočení smermi náhodne generovanými
 mapsAfterMove :: RandomGen t => MapWithBlock -> t -> ([MapWithBlock], t)
 mapsAfterMove mapa g = ((allMapsOfMoves mapa dirs), newG)
-	 where (dirs, newG) = shuffle [North, West, South, East] g
+	where (dirs, newG) = shuffle [North, West, South, East] g
 
 -- Vráti korektné mapy po otočení bloku zadanými smermi
 allMapsOfMoves :: MapWithBlock -> [Direction] -> [MapWithBlock]
@@ -183,8 +181,8 @@ checkedMapWithBlockAfterMove mapBlock dir =
 	if isBlockInMap newBlock newMap then Just newMapWithBlock
 	else Nothing
  	where
-	  newMapWithBlock = mapWithBlockAfterMove mapBlock dir
-	  (newMap, newBlock) = newMapWithBlock
+	 newMapWithBlock = mapWithBlockAfterMove mapBlock dir
+	 (newMap, newBlock) = newMapWithBlock
 
 -- Mapa s pridanými políčkami, po tom, čo sa blok nejaým smerom otočil
 mapWithBlockAfterMove :: MapWithBlock -> Direction -> MapWithBlock
@@ -199,8 +197,8 @@ isBlockInMap Block {dim = dim, point = Pt (x, y)} mapa =
 	if x >= 0 && y >= 0  && x + a  < s && y + c < v then True
 	else False 
  	where
-	  (s,v) = sizeOfMap mapa
-	  Dim (a,b,c) = dim
+	 (s,v) = sizeOfMap mapa
+	 Dim (a,b,c) = dim
 
 -- Vráti dvojicu veľkosti mapy
 sizeOfMap :: Map -> (Int, Int)
@@ -239,7 +237,7 @@ setIfThereIsBlock block pt orig =
 	if isFieldUnderBlock block pt then True
 	else orig
 
---Ak políčko nie je pod blkom, nastaví na True
+-- Ak políčko nie je pod blkom, nastaví na True
 setIfThereIsNotBlock :: Block -> Point -> Bool -> Bool
 setIfThereIsNotBlock block pt orig =
 	if isFieldUnderBlock block pt then orig
@@ -249,7 +247,7 @@ setIfThereIsNotBlock block pt orig =
 isFieldUnderBlock :: Block -> Point -> Bool
 isFieldUnderBlock (block) (pt) = isPointInRectangle rec pt
 	where
-		rec = allBottomFields block
+	 rec = allBottomFields block
 
 -- Odpovie, či daný bod sa nachádza v uzavretom obdĺžniku
 isPointInRectangle :: Rectangle -> Point -> Bool
@@ -264,15 +262,15 @@ allBottomFields :: Block -> Rectangle
 allBottomFields (Block {dim = Dim (a,b,c), point = Pt (x, y)}) =
 	Rec (Pt (x,y), Pt (x + a - 1, y + c - 1))
 
---Vráti blok aj so súradnicami po otočení daným smerom
+-- Vráti blok aj so súradnicami po otočení daným smerom
 getBlockAfterRotation :: Block -> Direction -> Block
 getBlockAfterRotation (Block {dim = dim, point = pt}) dir =
 	Block {dim = newDim, point = newPt}
 	where 
-		newDim = rotateBlockDimensions dim dir
-		newPt = pointAfterRotation pt dim dir
+	 newDim = rotateBlockDimensions dim dir
+	 newPt = pointAfterRotation pt dim dir
 
---Vráti novú súradnicu po otočeni daným smerom
+-- Vráti novú súradnicu po otočeni daným smerom
 pointAfterRotation :: Point -> Dim -> Direction -> Point
 pointAfterRotation (Pt (x, y)) (Dim (a, b, c)) dir
 	| dir == North = Pt (x, y - b)
@@ -280,13 +278,13 @@ pointAfterRotation (Pt (x, y)) (Dim (a, b, c)) dir
 	| dir == East  = Pt (x + a, y)
 	| dir == West  = Pt (x - b, y)
 
---Vráti nové rozmery bloku po otočení daným smerom
+-- Vráti nové rozmery bloku po otočení daným smerom
 rotateBlockDimensions :: Dim -> Direction -> Dim
 rotateBlockDimensions (Dim (a, b, c)) dir
 	| dir == North || dir == South = (Dim (a, c, b))
 	| dir == East  || dir == West  = (Dim (b, a, c))
 
---Vráti list permutovaných štvoríc svetových strán
+-- Vráti list permutovaných štvoríc svetových strán
 listOfPermutations g = 
 	(shuffled:listOfPermutations newG)
  	where (shuffled, newG) = shuffle [North, South, East, West] g
@@ -297,7 +295,7 @@ shuffle xs g =
 	let (permNum,newGen) = randomR (0, fac (length xs) -1) g
 	in ((permutations xs) !! permNum, newGen)
 
---Faktoriál prirodzeného čísla
+-- Faktoriál prirodzeného čísla
 fac :: Int -> Int
 fac 0 = 1
 fac x = x * (fac (x-1))
