@@ -128,8 +128,7 @@ getMetric mapa (current:queue) visited val =
 		else
  		 getMetric mapa (queue ++ newQueue) (current:visited) newVal
 	where
-	 newQueue = 
-	 	filter (areFieldsUnderBlockTrue mapa) $ map (getBlockAfterRotation current) [North, West, South, East]
+	 newQueue = filter (areFieldsUnderBlockTrue mapa) $ map (getBlockAfterRotation current) [North, West, South, East]
 	 newVal = val + (length newQueue - 1)^2
 
 -- Skontroluje, či pod blokom sú existujúce políčka
