@@ -38,6 +38,11 @@ Odčíta sa jednotka a súčet štvorcov týchto medzivýpočtov je metrikou.
 
 K tomuto bolo vytvorených mnoho pomocný funkcií, typov a dát.
 
+## Vstupy ##
+K programu sú v zložke ``` inputs ``` doložené tri ukážkové vstupy. Keďže sa
+využíva náhodný seed, tak opätovným spúšťaním programu na rovnaké vstupy
+získavame rôzne mapy.
+
 ## Možné vylepšenia ##
 V programe sa dá vyhrať s inými metrikami a ich testovaním.
 

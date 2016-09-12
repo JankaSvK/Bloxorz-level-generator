@@ -90,21 +90,13 @@ listListPretty [] = ""
 -- Vytvorí mapu zadaných parametrov
 createNewMap :: RandomGen t => (Point, (Int, Int), Dim, Int, Int) -> t -> (Map, Block,Int)
 createNewMap (pt, (wid, hei), dim, val, depth) g =
-	(setTrueOnCoord pt resMap, resEndBlock, resVal)
+	(updateMap resMap (Block {dim = dim, point = pt}), resEndBlock, resVal)
 	where 
 	 block = Block {dim = dim, point = pt}
 	 (maps, newGen) = mapGenerator [(grid wid hei False, block)] depth g
 	 mapsWithInfo = map (addInfoToMap block) maps
 	 result = (take 1 $ filter (sufficientMetric val) mapsWithInfo) !! 0
 	 (resMap, resEndBlock, resVal) = result
-
--- Na danej súradnici nastaví políčko na True
-setTrueOnCoord :: Point -> Map -> Map
-setTrueOnCoord (Pt (x, y)) mapa = newMapa
-	where
-	 line = mapa !! y
-	 newLine = take x line ++ [True] ++ drop (x + 1) line 
-	 newMapa = take y mapa ++ [newLine] ++ drop (y + 1) mapa
 
 -- Skontroluje, či metrika mapy je dostačujúca
 sufficientMetric :: Int -> (Map, Block, Int) -> Bool
