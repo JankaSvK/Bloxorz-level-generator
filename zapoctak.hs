@@ -27,36 +27,99 @@ type Map = [[MapData]]
 
 type MapWithBlock = (Map, Block) 
 
+type CoorMap = [CoorRow]
+type CoorRow = (Int, [CoorColumns])
+type CoorColumns = (Int, MapData)
+type MapData = Bool
 
---nacitavanie zo vstupu
---prva pozicia je false
-
-test = do
+main :: IO()
+main = do
 	g <- getStdGen
-	putStrLn $ show $ createNewMap (Pt (5,5)) (15,15) 200 g
+   	input <- proccessInput
+	(resMap, end, val) <- return $ createNewMap input g
+	putStrLn $ listListPretty $ resMap
+	putStr $ "Koniec má tento tvar: "
+	putStrLn $ show $ end
+	putStr $ "Metrika mapy je: "
+	putStrLn $ show $ val
 
-createNewMap :: RandomGen t => Point -> (Int, Int) -> Int -> t -> [(Map, Block,Int)]
-createNewMap pt (wid, hei) val g =
-	take 1 $ filter (sufficientMetric val) mapsWithInfos
+-- Načítavanie vstupu
+proccessInput :: IO (Point, (Int, Int), Dim, Int, Int)
+proccessInput = do
+	putStrLn $ "Zadajte rozmery bloku -- šírka výška hĺbka --"
+	blockDim <- readInts
+	putStrLn $ "Zadajte veľkosť mapy -- šírka výška --"
+	mapSize <- readInts
+	putStrLn $ "Zadajte počiatočné súradnice -- x y --"
+	startPoint <- readInts 
+	putStrLn $ "Zadajte minimálnu obtiažnosť mapy"
+	metric <- readInt
+	putStrLn $ "Zadajte hĺbku generovanéj mapy"
+	depth <- readInt
+	start <- return $ Pt (startPoint !! 0, startPoint !! 1)
+  	dim <- return $ Dim (blockDim !! 0, blockDim !! 1, blockDim !! 2)
+	map <- return $ (mapSize !! 0, mapSize !! 1)
+  	return (start, map, dim, metric, depth)
+
+-- Načíta číslo
+readInt :: IO Int
+readInt = do
+  	input <- getLine
+	return (read input :: Int)
+
+-- Načíta čísla oddelené bielymi znakmi do listu
+readInts :: IO [Int]
+readInts = do
+   	input <- getLine
+	return (map read $ words input :: [Int])
+
+-- Pomôcky pre pekný výpis mapy
+pretty :: Bool -> String
+pretty False = "."
+pretty True = "#"
+
+listPretty :: [Bool] -> String
+listPretty (a:as) = pretty a ++ listPretty as
+listPretty [] = ""
+
+listListPretty :: [[Bool]] -> String
+listListPretty (a:as) = listPretty a ++ "\n" ++ listListPretty as
+listListPretty [] = ""
+
+-- Vytvorí mapu zadaných parametrov
+createNewMap :: RandomGen t => (Point, (Int, Int), Dim, Int, Int) -> t -> (Map, Block,Int)
+createNewMap (pt, (wid, hei), dim, val, depth) g =
+	(setTrueOnCoord pt resMap, resEndBlock, resVal)
 	where 
-	 block = Block {dim = Dim (1,2,1), point = pt}
-	 (maps, newGen) = mapGenerator [(grid wid hei False, block)] 30 g
-	 mapsWithInfos = map (addInfoToMap block) maps
+	 block = Block {dim = dim, point = pt}
+	 (maps, newGen) = mapGenerator [(grid wid hei False, block)] depth g
+	 mapsWithInfo = map (addInfoToMap block) maps
+	 result = (take 1 $ filter (sufficientMetric val) mapsWithInfo) !! 0
+	 (resMap, resEndBlock, resVal) = result
 
+
+-- Na danej súradnici nastaví políčko na True
+setTrueOnCoord :: Point -> Map -> Map
+setTrueOnCoord (Pt (x, y)) mapa = newMapa
+	where
+	 line = mapa !! y
+	 newLine = take x line ++ [True] ++ drop (x + 1) line 
+	 newMapa = take y mapa ++ [newLine] ++ drop (y + 1) mapa
+
+-- Skontroluje, či metrika mapy je dostačujúca
 sufficientMetric :: Int -> (Map, Block, Int) -> Bool
-sufficientMetric goal (mapa, block, m)=
-	if m > goal then True
-	else False
+sufficientMetric goal (mapa, block, m) = m >= goal
 
-addInfoToMap :: Block -> MapWithBlock-> (Map, Block, Int)
+-- Vytvorí trojicu mapy s metrikou a koncovou pozíciou bloku
+addInfoToMap :: Block -> MapWithBlock -> (Map, Block, Int)
 addInfoToMap block (mapa, _) = (mapa, endBlock, metric)
 	where
 	 (endBlock, metric) = getMetric mapa [block] [] 0
 
--- ak je vacsia diera koniec tak moze spadnut ne
-
+-- Vytvorí list listov daných rozmerov
 grid x y = replicate x . replicate y
 
+-- Pomocou BFS vyhodnotí metriku mapy
 getMetric :: Map -> [Block] -> [Block] -> Int -> (Block, Int)
 getMetric _ [] (lastVisited:rest) val = (lastVisited, val)
 getMetric mapa (current:queue) visited val =
@@ -71,24 +134,17 @@ getMetric mapa (current:queue) visited val =
 
 
 
-
+-- Skontroluje, či pod blokom sú existujúce políčka
 areFieldsUnderBlockTrue :: Map -> Block -> Bool
 areFieldsUnderBlockTrue mapa block = 
 	and [(isBlockInMap block mapa),(all (and) (mapForMove mapa block))]
 
---zislo by sa prepisat do jednej lebo podobna je dole
-setIfThereIsNotBlock :: Block -> Point -> Bool -> Bool
-setIfThereIsNotBlock block pt orig =
-	if isFieldUnderBlock block pt then orig
-	else True
 
+-- 
 mapForMove :: Map -> Block -> Map 
 mapForMove mapa block = applyFunctionOnMap (setIfThereIsNotBlock block) mapa  
 
-
-
----
-
+--
 mapGenerator :: RandomGen t => [MapWithBlock] -> Int -> t -> ([MapWithBlock], t)
 mapGenerator listOfMaps 0 g = (listOfMaps, g)
 mapGenerator [] _ g = ([], g)
@@ -98,32 +154,30 @@ mapGenerator (mapa:listOfMaps) depth g =
 	 (proccessedTail, newGen) = mapGenerator listOfMaps depth tmpGen
 	 (proccessedHead, tmpGen) = proccessMap mapa depth g
 
+-- 
 proccessMap :: RandomGen t => MapWithBlock -> Int -> t -> ([MapWithBlock], t)
 proccessMap mapa depth g =
 	let (generatedMaps, newG) = mapsAfterMove mapa g
  	in
 		mapGenerator generatedMaps (depth-1) newG
 
---generatorThroughMaps :: RandomGen t => [MapWithBlock] -> Int -> t ->	([MapWithBlock], t)
---generatorThroughMaps [] _ g = ([], g)
---generatorThroughMaps (map:mapsRest) depth g = 
-
-
-
+-- Vráti korektné mapy po otočení smermi náhodne generovanými
 mapsAfterMove :: RandomGen t => MapWithBlock -> t -> ([MapWithBlock], t)
-mapsAfterMove mapa g = 
-	((allMapsOfMoves mapa dirs), newG)
+mapsAfterMove mapa g = ((allMapsOfMoves mapa dirs), newG)
 	 where (dirs, newG) = shuffle [North, West, South, East] g
 
+-- Vráti korektné mapy po otočení bloku zadanými smermi
 allMapsOfMoves :: MapWithBlock -> [Direction] -> [MapWithBlock]
 allMapsOfMoves mapWithBlock dirs = 
 	excludeNothing $ map (checkedMapWithBlockAfterMove mapWithBlock) dirs 
 
+-- List skráti o výskyt všetkých Nothing a z Just a urobí a
 excludeNothing :: [Maybe a] -> [a]
 excludeNothing [Nothing] = []
 excludeNothing [Just x] = [x]
 excludeNothing (x:xs) = (excludeNothing [x]) ++ (excludeNothing xs)
 
+-- Skontroluje, či nová mapa (po otočení) je koretná - či je blok vo vnútri
 checkedMapWithBlockAfterMove :: MapWithBlock -> Direction -> Maybe MapWithBlock
 checkedMapWithBlockAfterMove mapBlock dir =
 	if isBlockInMap newBlock newMap then Just newMapWithBlock
@@ -132,13 +186,14 @@ checkedMapWithBlockAfterMove mapBlock dir =
 	  newMapWithBlock = mapWithBlockAfterMove mapBlock dir
 	  (newMap, newBlock) = newMapWithBlock
 
-
+-- Mapa s pridanými políčkami, po tom, čo sa blok nejaým smerom otočil
 mapWithBlockAfterMove :: MapWithBlock -> Direction -> MapWithBlock
 mapWithBlockAfterMove (map, block) dir = (newMap, newBlock)
 	where
 	 newMap = updateMap map newBlock
 	 newBlock = getBlockAfterRotation block dir
 
+-- Skontroluje, či sa blok nachádza v rozsahu mapy
 isBlockInMap :: Block -> Map -> Bool
 isBlockInMap Block {dim = dim, point = Pt (x, y)} mapa =
 	if x >= 0 && y >= 0  && x + a  < s && y + c < v then True
@@ -147,69 +202,69 @@ isBlockInMap Block {dim = dim, point = Pt (x, y)} mapa =
 	  (s,v) = sizeOfMap mapa
 	  Dim (a,b,c) = dim
 
+-- Vráti dvojicu veľkosti mapy
 sizeOfMap :: Map -> (Int, Int)
 sizeOfMap mapa@(head:rest) = (length head, length mapa)
--------
 
+-- Aktualizuje mapu podľa umiestnenia bloku (políčkam pod ním da True0
 updateMap :: Map -> Block -> Map 
 updateMap mapa block = applyFunctionOnMap (setIfThereIsBlock block) mapa  
 
+-- Aplikuje funkciu na obyčajnú mapu
 applyFunctionOnMap :: (Point -> MapData -> MapData) -> Map -> Map
 applyFunctionOnMap f mapa =
 	functionOnCoorMap (f) (addCoordsToAMap mapa)
 
+-- Postupne pridáva súradnice k mape
 addLineNumber mapa = zip [0..] mapa
 addColumnNumber (y, val) = (y, addLineNumber val)
 addCoordsToAMap mapa = map addColumnNumber (addLineNumber mapa)
 
-type CoorMap = [CoorRow]
-type CoorRow = (Int, [CoorColumns])
-type CoorColumns = (Int, MapData)
-type MapData = Bool
-
+-- Aplikuje funkciu na list listov so súradnicami
 functionOnCoorMap :: (Point -> MapData -> MapData) -> CoorMap -> [[MapData]]
 functionOnCoorMap f coorMap = map (functionOnRow f) coorMap
 
+-- Aplikuje funkciu na riadok so súradnicami
 functionOnRow :: (Point -> MapData -> MapData) -> CoorRow -> [MapData]
 functionOnRow (f) (numOfRow, columns) = 
 	map (wrapperForFunction f numOfRow) columns
 
+-- Upravuje parametre pre funkciu
 wrapperForFunction :: (Point -> a -> a) -> Int -> (Int, a) -> a 
 wrapperForFunction f y (x, val) = f (Pt (x,y)) val
 
---giveSum' :: Point -> Int -> Int
---giveSum' (Pt (x, y)) val = x + y + val
-
+-- Ak je políčko pod blokom, tak ho nastaví na True
 setIfThereIsBlock :: Block -> Point -> Bool -> Bool
 setIfThereIsBlock block pt orig =
 	if isFieldUnderBlock block pt then True
 	else orig
 
+--Ak políčko nie je pod blkom, nastaví na True
+setIfThereIsNotBlock :: Block -> Point -> Bool -> Bool
+setIfThereIsNotBlock block pt orig =
+	if isFieldUnderBlock block pt then orig
+	else True
+
+-- Odpovie, či dané políčko sa nachádza pod blokom 
 isFieldUnderBlock :: Block -> Point -> Bool
-isFieldUnderBlock (block) (pt) =
-	if isPointInRectangle rec pt then True
-	else False
+isFieldUnderBlock (block) (pt) = isPointInRectangle rec pt
 	where
 		rec = allBottomFields block
 
--- Odpovie ci dany bod sa nachadza v uzavretom obdlzniku
+-- Odpovie, či daný bod sa nachádza v uzavretom obdĺžniku
 isPointInRectangle :: Rectangle -> Point -> Bool
-isPointInRectangle (Rec (Pt (x1, y1), Pt (x2, y2))) (Pt (x, y)) =
-	if isInRange x x1 x2 && isInRange y y1 y2 then True
- 	else False
+isPointInRectangle (Rec (Pt (x1, y1), Pt (x2, y2))) (Pt (x, y)) = isInRange x x1 x2 && isInRange y y1 y2
 
--- Odpovie ci dane cislo sa nachadza v uzavretom intervale
+-- Odpovie, či dané číslo sa nachádza v uzavretom intervale
 isInRange :: Int -> Int -> Int -> Bool
-isInRange val start end =
-	if val >= start && val <= end then  True
- 	else False
+isInRange val start end = val >= start && val <= end
 
--- Vrati obdlznik pod spodnou podstavou
+-- Vráti obdĺžnik pod spodnou podstavou
 allBottomFields :: Block -> Rectangle
 allBottomFields (Block {dim = Dim (a,b,c), point = Pt (x, y)}) =
 	Rec (Pt (x,y), Pt (x + a - 1, y + c - 1))
 
---Vrati Blok aj so suradnicami po otoceni danym smerom
+--Vráti blok aj so súradnicami po otočení daným smerom
 getBlockAfterRotation :: Block -> Direction -> Block
 getBlockAfterRotation (Block {dim = dim, point = pt}) dir =
 	Block {dim = newDim, point = newPt}
@@ -217,7 +272,7 @@ getBlockAfterRotation (Block {dim = dim, point = pt}) dir =
 		newDim = rotateBlockDimensions dim dir
 		newPt = pointAfterRotation pt dim dir
 
---Vrati novu suradnicu po otoceni danym smerom
+--Vráti novú súradnicu po otočeni daným smerom
 pointAfterRotation :: Point -> Dim -> Direction -> Point
 pointAfterRotation (Pt (x, y)) (Dim (a, b, c)) dir
 	| dir == North = Pt (x, y - b)
@@ -225,34 +280,24 @@ pointAfterRotation (Pt (x, y)) (Dim (a, b, c)) dir
 	| dir == East  = Pt (x + a, y)
 	| dir == West  = Pt (x - b, y)
 
---Vrati nove rozmery Bloku po otoceni danym smerom
+--Vráti nové rozmery bloku po otočení daným smerom
 rotateBlockDimensions :: Dim -> Direction -> Dim
 rotateBlockDimensions (Dim (a, b, c)) dir
 	| dir == North || dir == South = (Dim (a, c, b))
 	| dir == East  || dir == West  = (Dim (b, a, c))
 
-wrapper a = do
-	return a
-
---main = do
---	g <- getStdGen
---	rest g
---	fail "abc" 
-
-main = do 
-	g <- getStdGen
-	putStrLn $ show $ take 3 (listOfPermutations g)
-
--- riesime kreslenie mapy na zaklade vygenerovanej postupnosnti
+--Vráti list permutovaných štvoríc svetových strán
 listOfPermutations g = 
 	(shuffled:listOfPermutations newG)
  	where (shuffled, newG) = shuffle [North, South, East, West] g
 
+-- Spermutuje daný list a vráti nový generátor
 shuffle :: RandomGen t => [a] -> t -> ([a], t)
 shuffle xs g = 
 	let (permNum,newGen) = randomR (0, fac (length xs) -1) g
 	in ((permutations xs) !! permNum, newGen)
 
+--Faktoriál prirodzeného čísla
 fac :: Int -> Int
 fac 0 = 1
 fac x = x * (fac (x-1))
