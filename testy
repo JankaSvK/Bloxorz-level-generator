@@ -1,5 +1,0 @@
-getBlockAfterRotation (Block {dim = Dim (6,2,4), point = Pt (0,0)}) West
-	-- -2, 0 - 2 6 4
-
-getBlockAfterRotation (Block {dim = Dim (6,2,4), point = Pt (0,0)}) South
-	-- 0 4 - 6 4 2
