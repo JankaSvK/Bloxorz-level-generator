@@ -44,7 +44,7 @@ Rozmery bloku sa zadávajú na počet políčok. Veľkosť mapy určuje obdĺžn
 ktorom generátor smie generovať mapu. Užívateľ taktiež určí miesto štartu.
 
 Do programu sa zadáva minimálna obtiažnosť mapy vzhľadom na algoritmus, ktorý
-využíva - podrobnejší popis viz. [Programátoská
+využíva - podrobnejší popis viď [Programátoská
 									 dokumentácia](#programátorská-dokumentácia). Program zaručí, že vygenerovaná mapa bude mať aspoň takú obtiažnosť.
 Obtiažnosť vygenerovanej mapy je zahrnutá vo výpise.  
 Vhodné hodnoty: 50 - 350  
