@@ -12,7 +12,9 @@
 Hra Bloxorz je známa online hra, v ktorej úlohou je presunúť blok do cieľa.
 Blok má tvar kvádru a presúvať je ho možné preklápaním cez jeho štyri hrany
 (štyri smerové šípky). Cieľ pozostáva z diery, do ktorej musí blok vpadnúť
-(nestačí dieru prekryť).
+(nestačí dieru prekryť). Hráč si musí dať pozor, aby počas presunu k cieľu
+žiadnou svojou časťou bloku nestál na vzduchu. V takom prípade blok spadne a
+hráč prehral.
 
 [Príklad jedného levelu](http://www.albinoblacksheep.com/flash/960/bloxorz.jpg)
 
@@ -39,7 +41,7 @@ Zadajte minimálnu obtiažnosť mapy
 Zadajte hĺbku generovanéj mapy
 ```
 Rozmery bloku sa zadávajú na počet políčok. Veľkosť mapy určuje obdĺžnik, v
-ktorom generátor smie generovať mapu. Užívateľ taktiež určí meisto štartu.
+ktorom generátor smie generovať mapu. Užívateľ taktiež určí miesto štartu.
 
 Do programu sa zadáva minimálna obtiažnosť mapy vzhľadom na algoritmus, ktorý
 využíva. Program zaručí, že vygenerovaná mapa bude mať aspoň takú obtiažnosť.
