@@ -66,8 +66,8 @@ metrika mapy.
 
 ## Programátorská dokumentácia ##
 Program pozostáva z dvoch logických celkov:  
-1. generovanie mapy
-2. určenie metriky mapy
+1. generovanie mapy  
+2. určenie metriky mapy  
 
 Algoritmus vychádza na začiatku z prázdnej mapy. Podľa počiatočných súradníc
 umestni pomyselný blok. Náhodne týmto blokom otáča do všetkých smerov, pričom
