@@ -1,7 +1,25 @@
 # Bloxorz-level-generator
 *Jana Bátoryová*
 
-Úlohou bolo vytvoriť automatický generátor levelov pre hru Bloxorz.
+* [Úloha](#úloha)
+* [Užívateľská dokumentácia](#užívateľská-dokumentácia)
+* [Programátorská dokumentácia](#programátorská-dokumentácia)
+* [Vstupy](#vstupy)
+* [Možné vylepšenia](#možné-vylepšenia)
+
+## Úloha
+
+Hra Bloxorz je známa online hra, v ktorej úlohou je presunúť blok do cieľa.
+Blok má tvar kvádru a presúvať je ho možné preklápaním cez jeho štyri hrany
+(štyri smerové šípky). Cieľ pozostáva z diery, do ktorej musí blok vpadnúť
+(nestačí dieru prekryť).
+
+[Príklad jedného levelu](http://www.albinoblacksheep.com/flash/960/bloxorz.jpg)
+
+Úlohou bolo vytvoriť automatický generátor levelov s nastaviteľnou
+obtiažnosťou.
+
+Tento zápočtový program zahrňuje generovanie mapy pre ľubovoľný kváder.
 
 ## Užívateľská dokumentácia ##
 Program skompilujeme a spustíme pomocou nasledujúcich príkazov.
@@ -10,10 +28,35 @@ ghc zapoctak.hs
 ./zapoctak
 ```
 
-Ďalej postupujeme podľa pokynov na obrazovke.
+Interaktívny program nás sprevádza nastavením parametrov pre level, ktorý
+vygeneruje.
 
-Potom program vypíše mapu s označením '#' kde sa políčka nachádzajú a '.' kde
-nie. Dimenzia bloku určuje tvar "východu" (šírka, výška, hĺbka) a bod ĺavý
+```
+Zadajte rozmery bloku -- šírka výška hĺbka --
+Zadajte veľkosť mapy -- šírka výška --
+Zadajte počiatočné súradnice -- x y --
+Zadajte minimálnu obtiažnosť mapy
+Zadajte hĺbku generovanéj mapy
+```
+Rozmery bloku sa zadávajú na počet políčok. Veľkosť mapy určuje obdĺžnik, v
+ktorom generátor smie generovať mapu. Užívateľ taktiež určí meisto štartu.
+
+Do programu sa zadáva minimálna obtiažnosť mapy vzhľadom na algoritmus, ktorý
+využíva. Program zaručí, že vygenerovaná mapa bude mať aspoň takú obtiažnosť.
+Obtiažnosť vygenerovanej mapy je zahrnutá vo výpise.  
+Vhodné hodnoty: 50 - 350  
+*Pri jednotlivých rozmeroch mapy a blokov je možné hodnoty mierne navýšiť, či
+znížiť.*
+
+Hĺbka generovanej mapy zahrňuje taktiež údaje pre algoritmus. Vyššie čísla
+znamenajú väčší počet pevných políčok a nižšie naopak.  
+Vhodná hodnota: 30  
+*Jej zmena môže slúžiť k experimentovaniu*
+
+
+Po prijatí parametrov pre program sa generátor spustí. Následne vypíše mapu 
+s označením '#' kde sa políčka nachádzajú a '.' kde nie. Dimenzia bloku 
+určuje tvar "východu" (šírka, výška, hĺbka) a bod ĺavý
 horný roh podstavy tohoto východu. Pre informáciu je uvedená aj výsledná
 metrika mapy.
 
