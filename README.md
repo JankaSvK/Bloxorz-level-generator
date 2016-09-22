@@ -44,14 +44,16 @@ Rozmery bloku sa zadávajú na počet políčok. Veľkosť mapy určuje obdĺžn
 ktorom generátor smie generovať mapu. Užívateľ taktiež určí miesto štartu.
 
 Do programu sa zadáva minimálna obtiažnosť mapy vzhľadom na algoritmus, ktorý
-využíva. Program zaručí, že vygenerovaná mapa bude mať aspoň takú obtiažnosť.
+využíva - podrobnejší popis viz. [Programátoská
+									 dokumentácia](#programátorská-dokumentácia). Program zaručí, že vygenerovaná mapa bude mať aspoň takú obtiažnosť.
 Obtiažnosť vygenerovanej mapy je zahrnutá vo výpise.  
 Vhodné hodnoty: 50 - 350  
 *Pri jednotlivých rozmeroch mapy a blokov je možné hodnoty mierne navýšiť, či
 znížiť.*
 
-Hĺbka generovanej mapy zahrňuje taktiež údaje pre algoritmus. Vyššie čísla
-znamenajú väčší počet pevných políčok a nižšie naopak.  
+Hĺbka generovanej mapy zahrňuje taktiež údaje pre algoritmus, viď
+[Programátorská dokumentácia](#programátorská-dokumentácia).
+Tento údaj určuje to, ako dlho sa mapa generuje.  
 Vhodná hodnota: 30  
 *Jej zmena môže slúžiť k experimentovaniu*
 
@@ -63,12 +65,16 @@ horný roh podstavy tohoto východu. Pre informáciu je uvedená aj výsledná
 metrika mapy.
 
 ## Programátorská dokumentácia ##
-Program pozostáva z dvoch logických celkov:
+Program pozostáva z dvoch logických celkov:  
 1. generovanie mapy
 2. určenie metriky mapy
 
-Generovanie mapy prebieha postupným náhodným otáčaním bloku. Po vykonaní
-príslušného počtu krokov sa pre vytvorenú mapu spočíta jej metrika. Na jej
+Algoritmus vychádza na začiatku z prázdnej mapy. Podľa počiatočných súradníc
+umestni pomyselný blok. Náhodne týmto blokom otáča do všetkých smerov, pričom
+pri každom otočení označí políčka pod ním za "pevné". Hĺbka generovania zadaná
+pri vstupe značí počet týchto otočení bloku. 
+
+Následne sa pre mapu spočíta jej metrika. Na jej
 základe sa mapa zavrhne albo príjme. Pri zavrhnutí sa rekurzia o krok vráti a
 počíta s inou možnosťou otočenia bloku.
 
